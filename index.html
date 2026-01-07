@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basin Searcher</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2c5f4f;
+            --secondary: #8b7355;
+            --accent: #d4a574;
+            --dark: #1a1a1a;
+            --light: #f5f5f5;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+        }
+
+        /* Header & Navigation */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, #1a4436 100%);
+            color: white;
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+
+        .burger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 4px;
+        }
+
+        .burger div {
+            width: 25px;
+            height: 3px;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 70px;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Search Section */
+        .search-section {
+            max-width: 1200px;
+            margin: -30px auto 2rem;
+            padding: 0 2rem;
+        }
+
+        .search-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        .form-group select,
+        .form-group input {
+            padding: 0.9rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border 0.3s;
+            background: white;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .submit-btn {
+            grid-column: 1 / -1;
+            padding: 1rem 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(44, 95, 79, 0.3);
+        }
+
+        .submit-btn:hover {
+            background: #1a4436;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(44, 95, 79, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Map Section */
+        .map-section {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .map-section h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .map-container {
+            background: white;
+            background-image: url('java_map.png');
+            background-size: 100% 100%;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px var(--shadow);
+            position: relative;
+        }
+
+        #javaMap {
+            width: 100%;
+            height: 400px;
+            /* background: #e8f4f8; */
+            /* background-image: url('java_map.png'); */
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .region {
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .region:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+            text-shadow:
+                -1px -1px 0 #000,
+                1px -1px 0 #000,
+                -1px 1px 0 #000,
+                1px 1px 0 #000;
+        }
+
+        .banten {
+            left: -5%;
+            top: 0%;
+            width: 25%;
+            height: 40%;
+            /*
+            background: linear-gradient(135deg, #3a7f6d 0%, #2c5f4f 100%);
+            clip-path: polygon(0 30%, 100% 20%, 90% 80%, 0 70%);]
+            */
+        }
+
+        .west-java {
+            left: 10%;
+            top: 20%;
+            width: 25%;
+            height: 40%;
+            /*
+            background: linear-gradient(135deg, #3a7f6d 0%, #2c5f4f 100%);
+            clip-path: polygon(0 30%, 100% 20%, 90% 80%, 0 70%);]
+            */
+        }
+
+        .central-java {
+            left: 35%;
+            top: 25%;
+            width: 30%;
+            height: 50%;
+            /* background: linear-gradient(135deg, #4a8f7d 0%, #3a7f6d 100%);
+            clip-path: polygon(10% 30%, 100% 25%, 95% 75%, 5% 70%); */
+        }
+
+        .yogyakarta {
+            left: 45%;
+            top: 60%;
+            width: 20%;
+            height: 30%;
+            /* background: #1a1a1a; */
+            text-align: center;
+            /* background: linear-gradient(135deg, #4a8f7d 0%, #3a7f6d 100%);
+            clip-path: polygon(10% 30%, 100% 25%, 95% 75%, 5% 70%); */
+        }
+
+        .east-java {
+            left: 60%;
+            top: 30%;
+            width: 28%;
+            height: 60%;
+            /* background: linear-gradient(135deg, #5a9f8d 0%, #4a8f7d 100%);
+            clip-path: polygon(5% 35%, 100% 30%, 90% 70%, 0 75%); */
+        }
+
+        /* Results Section */
+        .results-section {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow);
+            transition: transform 0.3s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .result-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .result-content {
+            padding: 1.5rem;
+        }
+
+        .result-content h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .result-tag {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: var(--accent);
+            color: white;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Scroll to Top Button */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px var(--shadow);
+            transition: all 0.3s;
+            border: none;
+            font-size: 1.5rem;
+        }
+
+        .scroll-top:hover {
+            background: #1a4436;
+            transform: translateY(-3px);
+        }
+
+        .scroll-top.visible {
+            display: flex;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 2rem 1rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--accent);
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a:hover {
+            color: var(--accent);
+        }
+
+        .signature {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+            color: #888;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .burger {
+                display: flex;
+            }
+
+            .nav-links {
+                position: fixed;
+                right: -100%;
+                top: 70px;
+                flex-direction: column;
+                background: var(--primary);
+                width: 100%;
+                padding: 2rem;
+                transition: right 0.3s;
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .region {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">&#x26CF; Basin Searcher</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#explore">Explore</a></li>
+                <li><a href="#map">Map</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+            <div class="burger">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <h1>Your carbonate basin searcher</h1>
+        <p>A simple platform for learning and exploring basins. Explore and analyze sedimentary basins in Java Island.</p>
+    </section>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="search-container">
+            <form class="search-form" onsubmit="performSearch(event)">
+                <div class="form-group">
+                    <label for="regionFilter">Region</label>
+                    <select id="regionFilter">
+                        <option value="all">All Regions</option>
+                        <option value="banten">Banten</option>
+                        <option value="west">West Java</option>
+                        <option value="central">Central Java</option>
+                        <option value="yogyakarta">Special Region of Yogyakarta</option>
+                        <option value="east">East Java</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="typeFilter">Basin</label>
+                    <select id="typeFilter">
+                        <option value="all">All Basin</option>
+                        <option value="volcano">Basin 1</option>
+                        <option value="mineral">Basin 2</option>
+                        <option value="fossil">Basin 3</option>
+                        <option value="cave">Basin 4</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="sortFilter">Sort By</label>
+                    <select id="sortFilter">
+                        <option value="name">Name (A-Z)</option>
+                        <option value="name-desc">Name (Z-A)</option>
+                        <option value="region">Region</option>
+                        <option value="type">Type</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="searchInput">Search</label>
+                    <input type="text" id="searchInput" placeholder="Search for sites, keywords...">
+                </div>
+
+                <button type="submit" class="submit-btn">🔍 Search & Filter</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="map-section" id="map">
+        <h2>Explore by Region</h2>
+        <div class="map-container">
+            <div id="javaMap">
+                <div class="region banten" onclick="selectRegion('banten')">
+                    Banten
+                </div>
+                <div class="region west-java" onclick="selectRegion('west')">
+                    West Java
+                </div>
+                <div class="region central-java" onclick="selectRegion('central')">
+                    Central Java
+                </div>
+                <div class="region yogyakarta" onclick="selectRegion('yogyakarta')">
+                    Special Region of Yogyakarta
+                </div>
+                <div class="region east-java" onclick="selectRegion('east')">
+                    East Java
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section" id="explore">
+        <div class="results-grid" id="resultsGrid"></div>
+    </section>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top" onclick="scrollToTop()">↑</button>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>About Us</h3>
+                <p>Geoscience Explorer is dedicated to filter search basin material at your ease from open-source data.
+                </p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <a href="#home">Home</a>
+                <a href="#explore">Explore Sites</a>
+                <a href="#map">Regional Map</a>
+            </div>
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p>Email: info@geoscienceexplorer.id</p>
+                <p>Phone: +62 xxx xxxx xxxx</p>
+            </div>
+        </div>
+        <div class="signature">
+            <p>&copy; 2025 Ascaria. Crafted with passion for Earth sciences.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Sample geological data
+        const geologicalSites = [
+            // { name: "Mount Merapi", region: "central", type: "volcano", description: "One of Indonesia's most active volcanoes", img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%234a8f7d' width='400' height='300'/%3E%3Cpath fill='%23fff' opacity='0.1' d='M0 150 L200 50 L400 150 L400 300 L0 300 Z'/%3E%3C/svg%3E" },
+            // { name: "Tangkuban Perahu", region: "west", type: "volcano", description: "Stratovolcano with accessible crater", img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%233a7f6d' width='400' height='300'/%3E%3Cpath fill='%23fff' opacity='0.1' d='M100 200 L200 100 L300 200 L350 300 L50 300 Z'/%3E%3C/svg%3E" },
+            // { name: "Bromo Volcano", region: "east", type: "volcano", description: "Famous sunrise viewpoint and active crater", img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%235a9f8d' width='400' height='300'/%3E%3Cpath fill='%23fff' opacity='0.1' d='M150 180 L200 80 L250 180 L300 300 L100 300 Z'/%3E%3C/svg%3E" },
+            // { name: "Jomblang Cave", region: "central", type: "cave", description: "Vertical cave with heavenly light phenomenon", img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%234a8f7d' width='400' height='300'/%3E%3Ccircle fill='%23fff' opacity='0.2' cx='200' cy='150' r='80'/%3E%3C/svg%3E" },
+            // { name: "Ciletuh Geopark", region: "west", type: "mineral", description: "UNESCO Global Geopark with diverse geological features", img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%233a7f6d' width='400' height='300'/%3E%3Crect fill='%23fff' opacity='0.15' x='50' y='50' width='300' height='200' rx='10'/%3E%3C/svg%3E" },
+            // { name: "Sangiran Site", region: "central", type: "fossil", description: "Early human fossil site, UNESCO World Heritage", img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%234a8f7d' width='400' height='300'/%3E%3Cellipse fill='%23fff' opacity='0.2' cx='200' cy='150' rx='120' ry='80'/%3E%3C/svg%3E" },
+            // { name: "Ijen Crater", region: "east", type: "mineral", description: "Blue fire phenomenon and sulfur mining", img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%235a9f8d' width='400' height='300'/%3E%3Ccircle fill='%2300d4ff' opacity='0.3' cx='200' cy='180' r='60'/%3E%3C/svg%3E" },
+            // { name: "Gunung Sewu", region: "central", type: "cave", description: "Karst landscape with numerous caves", img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%234a8f7d' width='400' height='300'/%3E%3Ccircle fill='%23fff' opacity='0.15' cx='150' cy='120' r='40'/%3E%3Ccircle fill='%23fff' opacity='0.15' cx='250' cy='160' r='35'/%3E%3C/svg%3E" },
+            // { name: "Dieng Plateau", region: "central", type: "volcano", description: "Volcanic plateau with colorful crater lakes", img: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect fill='%234a8f7d' width='400' height='300'/%3E%3Cellipse fill='%2300ff88' opacity='0.3' cx='200' cy='150' rx='80' ry='50'/%3E%3C/svg%3E" }
+        ];
+
+        let currentFilter = 'all';
+        let currentRegion = 'all';
+        let currentSort = 'name';
+
+        // Initialize
+        displayResults(geologicalSites);
+
+        // Burger menu toggle
+        document.querySelector('.burger').addEventListener('click', () => {
+            document.querySelector('.nav-links').classList.toggle('active');
+        });
+
+        // Search form submission
+        function performSearch(event) {
+            if (event) event.preventDefault();
+
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            currentRegion = document.getElementById('regionFilter').value;
+            currentFilter = document.getElementById('typeFilter').value;
+            currentSort = document.getElementById('sortFilter').value;
+
+            filterAndDisplayResults(searchQuery);
+        }
+
+        // Region selection from map
+        function selectRegion(region) {
+            currentRegion = region;
+            document.getElementById('regionFilter').value = region;
+            filterAndDisplayResults();
+
+            // Visual feedback
+            document.querySelectorAll('.region').forEach(r => r.style.filter = 'brightness(0.7)');
+            event.target.style.filter = 'brightness(1.2)';
+
+            setTimeout(() => {
+                document.querySelectorAll('.region').forEach(r => r.style.filter = '');
+            }, 1000);
+        }
+
+        // Filter and display results
+        function filterAndDisplayResults(searchQuery = '') {
+            let filtered = [...geologicalSites];
+
+            // Apply search filter
+            if (searchQuery) {
+                filtered = filtered.filter(site =>
+                    site.name.toLowerCase().includes(searchQuery) ||
+                    site.description.toLowerCase().includes(searchQuery)
+                );
+            }
+
+            // Apply region filter
+            if (currentRegion !== 'all') {
+                filtered = filtered.filter(site => site.region === currentRegion);
+            }
+
+            // Apply type filter
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(site => site.type === currentFilter);
+            }
+
+            // Apply sorting
+            filtered.sort((a, b) => {
+                switch (currentSort) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'name-desc':
+                        return b.name.localeCompare(a.name);
+                    case 'region':
+                        return a.region.localeCompare(b.region);
+                    case 'type':
+                        return a.type.localeCompare(b.type);
+                    default:
+                        return 0;
+                }
+            });
+
+            displayResults(filtered);
+        }
+
+        // Display results
+        function displayResults(sites) {
+            const grid = document.getElementById('resultsGrid');
+
+            if (sites.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #888; grid-column: 1/-1;">No results found. Try adjusting your search or filters.</p>';
+                return;
+            }
+
+            grid.innerHTML = sites.map(site => `
+                <div class="result-card">
+                    <img src="${site.img}" alt="${site.name}">
+                    <div class="result-content">
+                        <h3>${site.name}</h3>
+                        <p>${site.description}</p>
+                        <span class="result-tag">${site.type}</span>
+                        <span class="result-tag">${site.region} Java</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Scroll to top functionality
+        window.addEventListener('scroll', () => {
+            const scrollBtn = document.querySelector('.scroll-top');
+            if (window.pageYOffset > 300) {
+                scrollBtn.classList.add('visible');
+            } else {
+                scrollBtn.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    document.querySelector('.nav-links').classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
